@@ -20,6 +20,8 @@
 
 // 	email_cleanup(&email);
 
+#include "smtp_settings.h"
+
 #ifndef EMAILS_H_INCLUDED
 #define EMAILS_H_INCLUDED
 
@@ -31,12 +33,16 @@ struct email_t {
 	size_t num_recipients;
 	char *subject;
 	char *body;
+	int body_size;
+	int body_capacity;
 };
 
-void send_email(struct email_t email);
+int send_email(struct email_t email);
+int send_email_gmail(struct email_t email, struct smtp_settings_t *smtp);
 void email_init(struct email_t *email, const char *from, const char *subject, const char *body);
 void email_add_recipient(struct email_t *email, const char *recipient);
 void email_cleanup(struct email_t *email);
+void email_cleanup_contents(struct email_t *email);
 char *strdup_c11(const char *src);
 
 #endif

@@ -1,45 +1,29 @@
-INCLUDE_DIRS = -I $(UTILS_DIR) -I $(LIBS_DIR)
+include $(TOPDIR)/rules.mk
 
-CFLAGS = -Wall -std=c11 $(INCLUDE_DIRS)
-LDFLAGS = -lmosquitto -lcurl
+PKG_NAME:=mqtt-subscriber
+PKG_RELEASE:=1
+PKG_VERSION:=1.0.0
 
-SRC_DIR := src
-OBJ_DIR := obj
-UTILS_DIR := utils
-LIBS_DIR := libs
+PKG_BUILD_DEPENDS:=!USE_GLIBC:argp-standalone
 
-SRCS := $(wildcard $(SRC_DIR)/*.c)
-UTILS := $(wildcard $(UTILS_DIR)/*.c)
-LIBS := $(wildcard $(LIBS_DIR)/*.c)
+TARGET_CFLAGS += -Og -ggdb3
 
-OBJS := $(patsubst $(SRC_DIR)/%.c,$(OBJ_DIR)/%.o,$(SRCS))
-UTIL_OBJS := $(patsubst $(UTILS_DIR)/%.c,$(OBJ_DIR)/%.o,$(UTILS))
-LIB_OBJS := $(patsubst $(LIBS_DIR)/%.c,$(OBJ_DIR)/%.o,$(LIBS))
+include $(INCLUDE_DIR)/package.mk
 
-EXECUTABLE := mqtt_sub
+define Package/mqtt-subscriber
+	CATEGORY:=Examples
+	TITLE:=mqtt-subscriber
+	DEPENDS:= \
+		+libcurl \
+		+libmosquitto \
+		+libuci
+endef
 
-.PHONY: all clean
+define Package/mqtt-subscriber/install
+	$(INSTALL_DIR) $(1)/usr/bin
+	$(INSTALL_DIR) $(1)/etc/config
+	$(INSTALL_BIN) $(PKG_BUILD_DIR)/mqtt_sub $(1)/usr/bin
+	$(INSTALL_CONF) ./files/mqtt_sub.config $(1)/etc/config/mqtt_sub
+endef
 
-all: $(EXECUTABLE)
-
-$(EXECUTABLE): $(UTIL_OBJS) $(LIB_OBJS) $(OBJS) 
-	$(CC) $(CFLAGS) $^ $(LDFLAGS) -o $@
-
-$(OBJ_DIR)/%.o: $(SRC_DIR)/%.c | $(OBJ_DIR)
-	$(CC) $(CFLAGS) -c $< -o $@
-
-$(OBJ_DIR)/%.o: $(UTILS_DIR)/%.c | $(OBJ_DIR)
-	$(CC) $(CFLAGS) -c $< -o $@
-
-$(OBJ_DIR)/%.o: $(LIBS_DIR)/%.c | $(OBJ_DIR)
-	$(CC) $(CFLAGS) -c $< -o $@
-
-$(OBJ_DIR):
-	mkdir -p $@
-
-
-
-
-clean:
-	rm -f $(OBJ_DIR)/*.o $(EXECUTABLE)
-
+$(eval $(call BuildPackage,mqtt-subscriber))
